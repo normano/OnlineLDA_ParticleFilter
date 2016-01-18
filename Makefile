@@ -1,4 +1,4 @@
-PROGRAM	= ldapf
+PROGRAM	= ldapf.so
 CC	= gcc
 CFLAGS	= -O3
 SRCS	= ldapf.c learn.c writer.c feature.c imatrix.c dmatrix.c util.c
@@ -13,7 +13,7 @@ DISTFILES	= $(SRCS) $(HEADERS) Makefile
 all: depend $(PROGRAM)
 
 $(PROGRAM): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
+	$(CC) $(CFLAGS) -shared -o $@ $(OBJS) $(LDFLAGS)
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 

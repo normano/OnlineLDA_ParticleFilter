@@ -13,54 +13,47 @@
 #include "imatrix.h"
 #include "util.h"
 
-int main(int argc, char **argv){
+int calculate(int nparticle, int ess, int rejuvenation, double alpha, double beta, char *data_path, char *model_prefix){
     document *data;
     FILE *tp;
     char c;
     int nlex, dlenmax;
     int prelex, preclass;
     int ndoc, nclass;
-    int nparticle = NPARTICLE_DEFAULT;
-    int ess = ESS_DEFAULT;
-    int rejuvenation = REJUVENATION_DEFAULT;
-    double alpha = ALPHA_DEFAULT;
-    double beta = BETA_DEFAULT;
     double **theta;
     int **n_zw;
     int i,j;
     int *tmp;
-    
-    while((c = getopt(argc, argv, "P:E:R:A:B:h")) != -1){
-        switch(c){
-            case 'P': nparticle = atoi(optarg); break;
-            case 'E': ess = atoi(optarg); break;
-            case 'R': rejuvenation = atoi(optarg); break;
-            case 'A': alpha = atof(optarg); break;
-            case 'B': beta = atof(optarg); break;
-            case 'h': usage(); break;
-            default: usage(); break;
-        }
+
+    if(nparticle==0){
+        nparticle = NPARTICLE_DEFAULT;
+    }else if(ess==0){
+        ess = ESS_DEFAULT;
+    }else if(rejuvenation==0){
+        rejuvenation = REJUVENATION_DEFAULT;
+    }else if(alpha==0){
+        alpha = ALPHA_DEFAULT;
+    }else if(beta==0){
+        beta = BETA_DEFAULT;
     }
-    if(!(argc - optind == 2))
-        usage();
-    
+
     if(nparticle > 300){
         fprintf(stderr,"ldapf:: Too many particles. The number of particles should be fewer than 300.\n");
         exit(1);
     }
-    
+
     // open data
-    if((data = feature_matrix(argv[optind], &nlex, &dlenmax, &ndoc)) == NULL){
+    if((data = feature_matrix(data_path, &nlex, &dlenmax, &ndoc)) == NULL){
         fprintf(stderr, "ldapf:: cannot open training data.\n");
         exit(1);
     }
     // open output
-    if((tp = fopen(strconcat(argv[optind], ".theta"),"w")) == NULL){
+    if((tp = fopen(strconcat(data_path, ".theta"),"w")) == NULL){
         fprintf(stderr, "ldapf:: cannot open output.\n");
         exit(1);
     }
     // load model
-    if((n_zw = load_n_wz(strconcat(argv[optind+1],".n_wz"), &prelex, &preclass)) == NULL){
+    if((n_zw = load_n_wz(strconcat(model_prefix,".n_wz"), &prelex, &preclass)) == NULL){
         fprintf(stderr, "ldapf:: cannot load model.\n");
         exit(1);
     }
@@ -81,23 +74,23 @@ int main(int argc, char **argv){
     }else{
         nlex = prelex;
     }
-    
+
     // allocate parameters
     if((theta = dmatrix(ndoc, nclass)) == NULL){
         fprintf(stderr, "ldapf:: cannot allocate theta.\n");
         exit(1);
     }
-    
+
     ldapf_learn(data, alpha, beta, ndoc, nclass, nlex, dlenmax, nparticle, ess, rejuvenation, n_zw, theta);
     lda_write(tp, theta, nclass, ndoc);
-    
+
     free_feature_matrix(data);
     free_dmatrix(theta, ndoc);
     for(i = 0;i < nclass;i++)
         free(n_zw[i]);
     free(n_zw);
     fclose(tp);
-    
+
     exit(0);
 }
 
