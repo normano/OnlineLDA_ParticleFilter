@@ -13,7 +13,7 @@
 #include "imatrix.h"
 #include "util.h"
 
-int calculate(int nparticle, int ess, int rejuvenation, double alpha, double beta, char *data_path, char *model_prefix){
+void calculate(int nparticle, int ess, int rejuvenation, double alpha, double beta, char *data_path, char *model_prefix){
     document *data;
     FILE *tp;
     char c;
@@ -91,7 +91,6 @@ int calculate(int nparticle, int ess, int rejuvenation, double alpha, double bet
     free(n_zw);
     fclose(tp);
 
-    exit(0);
 }
 
 void usage(void){
